@@ -3,14 +3,12 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
-# package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:public"])
 
-exports_files(glob(
-    [
-        "examples/common/**",
-        "examples/29-debugdraw/**",
-    ],
-))
+exports_files(glob([
+    "examples/common/**",
+    "examples/29-debugdraw/**",
+]))
 
 srcs = [
     "src/bgfx.cpp",
@@ -56,11 +54,10 @@ cc_library(
         "3rdparty/khronos",
         "include",
     ],
-    linkstatic = True,
-    deps = [
-        "//bimg:bimg",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//bimg",
+    ],
 )
 
 cc_library(
@@ -73,7 +70,6 @@ cc_library(
     includes = [
         "examples/common",
     ],
-    linkstatic = True,
     deps = [
         ":bgfx",
     ],
@@ -91,8 +87,36 @@ examples_linkopts = [
 ]
 
 cc_binary(
-    name = "29-debug_draw",
+    name = "14-shadowvolumes",
+    srcs = ["examples/14-shadowvolumes/shadowvolumes.cpp"],
+    linkopts = examples_linkopts,
+    deps = examples_deps,
+)
+
+cc_binary(
+    name = "15-shadowmaps-simple",
+    srcs = ["examples/15-shadowmaps-simple/shadowmaps_simple.cpp"],
+    linkopts = examples_linkopts,
+    deps = examples_deps,
+)
+
+cc_binary(
+    name = "22-windows",
+    srcs = ["examples/22-windows/windows.cpp"],
+    linkopts = examples_linkopts,
+    deps = examples_deps,
+)
+
+cc_binary(
+    name = "29-debugdraw",
     srcs = ["examples/29-debugdraw/debugdraw.cpp"],
+    linkopts = examples_linkopts,
+    deps = examples_deps,
+)
+
+cc_binary(
+    name = "30-picking",
+    srcs = ["examples/30-picking/picking.cpp"],
     linkopts = examples_linkopts,
     deps = examples_deps,
 )
