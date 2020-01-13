@@ -1,7 +1,16 @@
 # bgfx.bazel - bgfx building in bazel
 # Author: Alex Rozgo <alex.rozgo@gmail.com>
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "objc_library")
+
+load(
+    "@build_bazel_rules_apple//apple:macos.bzl",
+    "macos_application",
+)
+load(
+    "@build_bazel_rules_apple//apple:versioning.bzl",
+    "apple_bundle_version",
+)
 
 package(default_visibility = ["//visibility:public"])
 
@@ -34,6 +43,12 @@ srcs = [
     "src/vertexdecl.cpp",
 ]
 
+srcs_osx = [
+    "src/glcontext_eagl.mm",
+    "src/glcontext_nsgl.mm",
+    "src/renderer_mtl.mm",
+]
+
 cc_library(
     name = "bgfx",
     srcs = srcs + glob([
@@ -46,17 +61,45 @@ cc_library(
         "**/*.h",
         "**/*.inl",
     ]),
-    copts = [
-        "",
+    defines = [
+        "BGFX_CONFIG_RENDERER_VULKAN=0",
+        "BGFX_CONFIG_RENDERER_METAL=1",
     ],
     includes = [
         "3rdparty",
         "3rdparty/khronos",
         "include",
     ],
+    copts = [
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//bimg",
+    ],
+)
+
+objc_library(
+    name = "bgfx-osx",
+    srcs = srcs_osx + glob([
+
+    ]),
+    hdrs = glob([
+        "**/*.h",
+        "**/*.inl",
+    ]),
+    defines = [
+        "BGFX_CONFIG_RENDERER_VULKAN=0",
+        "BGFX_CONFIG_RENDERER_METAL=1",
+    ],
+    includes = [
+        "include",
+    ],
+    copts = [
+        "-fno-objc-arc",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":bgfx",
     ],
 )
 
@@ -66,6 +109,8 @@ cc_library(
     hdrs = glob(["examples/common/**/*.h"]),
     defines = [
         "ENTRY_CONFIG_IMPLEMENT_MAIN=1",
+        "BGFX_CONFIG_RENDERER_VULKAN=0",
+        "BGFX_CONFIG_RENDERER_METAL=1",
     ],
     includes = [
         "examples/common",
@@ -75,13 +120,49 @@ cc_library(
     ],
 )
 
+objc_library(
+    name = "common-osx",
+    srcs = glob(["examples/common/**/*.mm"]),
+    hdrs = glob(["examples/common/**/*.h"]),
+    defines = [
+        "ENTRY_CONFIG_IMPLEMENT_MAIN=1",
+        "BGFX_CONFIG_RENDERER_VULKAN=0",
+        "BGFX_CONFIG_RENDERER_METAL=1",
+    ],
+    includes = [
+        "examples/common",
+    ],
+    copts = [
+        "-fno-objc-arc",
+    ],
+    sdk_frameworks = [
+        "QuartzCore",
+        "Cocoa",
+        "Metal",
+    ],
+    deps = [
+        ":common",
+        ":bgfx-osx",
+    ],
+)
+
 examples_deps = [
     ":common",
+]
+
+examples_deps_osxs = [
+    ":common",
+    ":common-osx",
 ]
 
 examples_linkopts = [
     "-lX11",
     "-lGL",
+    "-lpthread",
+    "-ldl",
+]
+
+examples_linkopts_osx = [
     "-lpthread",
     "-ldl",
 ]
@@ -112,6 +193,13 @@ cc_binary(
     srcs = ["examples/29-debugdraw/debugdraw.cpp"],
     linkopts = examples_linkopts,
     deps = examples_deps,
+)
+
+cc_binary(
+    name = "29-debugdraw-osx",
+    srcs = ["examples/29-debugdraw/debugdraw.cpp"],
+    linkopts = examples_linkopts_osx,
+    deps = examples_deps_osxs,
 )
 
 cc_binary(
