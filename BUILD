@@ -34,7 +34,7 @@ srcs = [
     "src/vertexdecl.cpp",
 ]
 
-srcs_osx = [
+srcs_macos = [
     "src/glcontext_eagl.mm",
     "src/glcontext_nsgl.mm",
     "src/renderer_mtl.mm",
@@ -97,8 +97,8 @@ cc_library(
 )
 
 objc_library(
-    name = "bgfx-osx",
-    srcs = srcs_osx + glob([
+    name = "bgfx-compat-macos",
+    srcs = srcs_macos + glob([
 
     ]),
     hdrs = glob([
@@ -150,6 +150,7 @@ cc_library(
     ],
     deps = [
         ":bgfx-macos",
+        ":bgfx-compat-macos",
     ],
 )
 
