@@ -3,15 +3,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "objc_library")
 
-load(
-    "@build_bazel_rules_apple//apple:macos.bzl",
-    "macos_application",
-)
-load(
-    "@build_bazel_rules_apple//apple:versioning.bzl",
-    "apple_bundle_version",
-)
-
 package(default_visibility = ["//visibility:public"])
 
 exports_files(glob([
@@ -50,7 +41,34 @@ srcs_osx = [
 ]
 
 cc_library(
-    name = "bgfx",
+    name = "bgfx-linux",
+    srcs = srcs + glob([
+        "src/**/*.h",
+        "src/**/*.inl",
+        "3rdparty/dear-imgui/**/*.cpp",
+        "3rdparty/meshoptimizer/src/**/*.cpp",
+    ]),
+    hdrs = glob([
+        "**/*.h",
+        "**/*.inl",
+    ]),
+    defines = [
+    ],
+    includes = [
+        "3rdparty",
+        "3rdparty/khronos",
+        "include",
+    ],
+    copts = [
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bimg:bimg-linux",
+    ],
+)
+
+cc_library(
+    name = "bgfx-macos",
     srcs = srcs + glob([
         "src/**/*.h",
         "src/**/*.inl",
@@ -74,7 +92,7 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//bimg",
+        "//bimg:bimg-macos",
     ],
 )
 
@@ -99,12 +117,27 @@ objc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":bgfx",
+        ":bgfx-macos",
     ],
 )
 
 cc_library(
-    name = "common",
+    name = "common-linux",
+    srcs = glob(["examples/common/**/*.cpp"]),
+    hdrs = glob(["examples/common/**/*.h"]),
+    defines = [
+        "ENTRY_CONFIG_IMPLEMENT_MAIN=1",
+    ],
+    includes = [
+        "examples/common",
+    ],
+    deps = [
+        ":bgfx-linux",
+    ],
+)
+
+cc_library(
+    name = "common-macos",
     srcs = glob(["examples/common/**/*.cpp"]),
     hdrs = glob(["examples/common/**/*.h"]),
     defines = [
@@ -116,12 +149,12 @@ cc_library(
         "examples/common",
     ],
     deps = [
-        ":bgfx",
+        ":bgfx-macos",
     ],
 )
 
 objc_library(
-    name = "common-osx",
+    name = "common-compat-macos",
     srcs = glob(["examples/common/**/*.mm"]),
     hdrs = glob(["examples/common/**/*.h"]),
     defines = [
@@ -141,28 +174,28 @@ objc_library(
         "Metal",
     ],
     deps = [
-        ":common",
-        ":bgfx-osx",
+        ":common-macos",
+        ":bgfx-macos",
     ],
 )
 
-examples_deps = [
-    ":common",
+examples_deps_linux = [
+    ":common-linux",
 ]
 
-examples_deps_osxs = [
-    ":common",
-    ":common-osx",
+examples_deps_macos = [
+    ":common-macos",
+    ":common-compat-macos",
 ]
 
-examples_linkopts = [
+examples_linkopts_linux = [
     "-lX11",
     "-lGL",
     "-lpthread",
     "-ldl",
 ]
 
-examples_linkopts_osx = [
+examples_linkopts_macos = [
     "-lpthread",
     "-ldl",
 ]
@@ -170,41 +203,41 @@ examples_linkopts_osx = [
 cc_binary(
     name = "14-shadowvolumes",
     srcs = ["examples/14-shadowvolumes/shadowvolumes.cpp"],
-    linkopts = examples_linkopts,
-    deps = examples_deps,
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
 )
 
 cc_binary(
     name = "15-shadowmaps-simple",
     srcs = ["examples/15-shadowmaps-simple/shadowmaps_simple.cpp"],
-    linkopts = examples_linkopts,
-    deps = examples_deps,
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
 )
 
 cc_binary(
     name = "22-windows",
     srcs = ["examples/22-windows/windows.cpp"],
-    linkopts = examples_linkopts,
-    deps = examples_deps,
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
 )
 
 cc_binary(
     name = "29-debugdraw",
     srcs = ["examples/29-debugdraw/debugdraw.cpp"],
-    linkopts = examples_linkopts,
-    deps = examples_deps,
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
 )
 
 cc_binary(
-    name = "29-debugdraw-osx",
+    name = "29-debugdraw-macos",
     srcs = ["examples/29-debugdraw/debugdraw.cpp"],
-    linkopts = examples_linkopts_osx,
-    deps = examples_deps_osxs,
+    linkopts = examples_linkopts_macos,
+    deps = examples_deps_macos,
 )
 
 cc_binary(
     name = "30-picking",
     srcs = ["examples/30-picking/picking.cpp"],
-    linkopts = examples_linkopts,
-    deps = examples_deps,
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
 )
