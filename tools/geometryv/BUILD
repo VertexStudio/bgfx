@@ -16,6 +16,6 @@ cc_binary(
         "-ldl",
     ],
     deps = [
-        "//bgfx:common",
+        "//bgfx:common-linux",
     ],
 )
