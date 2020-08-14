@@ -21,11 +21,12 @@ srcs = [
     "src/renderer_noop.cpp",
     "src/renderer_nvn.cpp",
     "src/renderer_vk.cpp",
+    "src/renderer_webgpu.cpp",
     "src/shader_dx9bc.cpp",
     "src/shader_dxbc.cpp",
     "src/shader_spirv.cpp",
     "src/topology.cpp",
-    "src/vertexdecl.cpp",
+    "src/vertexlayout.cpp",
 ]
 
 srcs_macos = [
