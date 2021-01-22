@@ -3007,7 +3007,7 @@ namespace bgfx { namespace gl
 
 				if (s_extension[Extension::ARB_provoking_vertex].m_supported)
 				{
-					GL_CHECK(glProvokingVertex(GL_FIRST_VERTEX_CONVENTION) );
+					GL_CHECK(glProvokingVertex(GL_FIRST_VERTEX_CONVENTION_OES) );
 				}
 
 				if (NULL == glInsertEventMarker

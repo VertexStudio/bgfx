@@ -49,6 +49,8 @@ cc_library(
         "**/*.inl",
     ]),
     defines = [
+		"BGFX_CONFIG_RENDERER_OPENGGL=0",
+		"BGFX_CONFIG_RENDERER_OPENGLES=1"
     ],
     includes = [
         "3rdparty",
