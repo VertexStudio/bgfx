@@ -50,7 +50,7 @@ cc_library(
     ]),
     defines = [
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
-		"BGFX_CONFIG_RENDERER_OPENGLES=1"
+		"BGFX_CONFIG_RENDERER_OPENGLES=30"
     ],
     includes = [
         "3rdparty",
@@ -185,12 +185,27 @@ examples_linkopts_linux = [
     "-lGL",
     "-lpthread",
     "-ldl",
+	"-lEGL"
 ]
 
 examples_linkopts_macos = [
     "-lpthread",
     "-ldl",
 ]
+
+cc_binary(
+    name = "00-helloworld-linux",
+    srcs = ["examples/00-helloworld/helloworld.cpp"],
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
+)
+
+cc_binary(
+    name = "01-cubes-linux",
+    srcs = ["examples/01-cubes/cubes.cpp"],
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
+)
 
 cc_binary(
     name = "14-shadowvolumes-linux",

@@ -3005,10 +3005,10 @@ namespace bgfx { namespace gl
 					GL_CHECK(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS) );
 				}
 
-				if (s_extension[Extension::ARB_provoking_vertex].m_supported)
-				{
-					GL_CHECK(glProvokingVertex(GL_FIRST_VERTEX_CONVENTION_OES) );
-				}
+				// if (s_extension[Extension::ARB_provoking_vertex].m_supported)
+				// {
+				// 	GL_CHECK(glProvokingVertex(GL_FIRST_VERTEX_CONVENTION_OES) );
+				// }
 
 				if (NULL == glInsertEventMarker
 				||  !s_extension[Extension::EXT_debug_marker].m_supported)
