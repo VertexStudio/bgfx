@@ -50,7 +50,8 @@ cc_library(
     ]),
     defines = [
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
-		"BGFX_CONFIG_RENDERER_OPENGLES=30"
+		"BGFX_CONFIG_RENDERER_OPENGLES=30",
+		"BGFX_CONFIG_DEBUG"
     ],
     includes = [
         "3rdparty",
@@ -123,6 +124,7 @@ cc_library(
     hdrs = glob(["examples/common/**/*.h"]),
     defines = [
         "ENTRY_CONFIG_IMPLEMENT_MAIN=1",
+		"ENTRY_CONFIG_USE_NOOP",
     ],
     includes = [
         "examples/common",
@@ -181,7 +183,6 @@ examples_deps_macos = [
 ]
 
 examples_linkopts_linux = [
-    "-lX11",
     "-lGL",
     "-lpthread",
     "-ldl",
