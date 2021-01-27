@@ -50,8 +50,7 @@ cc_library(
     ]),
     defines = [
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
-		"BGFX_CONFIG_RENDERER_OPENGLES=30",
-		"BGFX_CONFIG_DEBUG"
+		"BGFX_CONFIG_RENDERER_OPENGLES=30"
     ],
     includes = [
         "3rdparty",
