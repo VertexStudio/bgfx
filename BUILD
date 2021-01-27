@@ -48,6 +48,32 @@ cc_library(
         "**/*.h",
         "**/*.inl",
     ]),
+    includes = [
+        "3rdparty",
+        "3rdparty/khronos",
+        "include",
+    ],
+    copts = [
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bimg:bimg-linux",
+    ],
+)
+
+cc_library(
+    name = "bgfx-linux-headless",
+    srcs = srcs + ["src/glcontext_glx.cpp"] +
+        glob([
+        "src/**/*.h",
+        "src/**/*.inl",
+        "3rdparty/dear-imgui/**/*.cpp",
+        "3rdparty/meshoptimizer/src/**/*.cpp",
+    ]),
+    hdrs = glob([
+        "**/*.h",
+        "**/*.inl",
+    ]),
     defines = [
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
 		"BGFX_CONFIG_RENDERER_OPENGLES=30"
@@ -123,13 +149,28 @@ cc_library(
     hdrs = glob(["examples/common/**/*.h"]),
     defines = [
         "ENTRY_CONFIG_IMPLEMENT_MAIN=1",
-		"ENTRY_CONFIG_USE_NOOP",
     ],
     includes = [
         "examples/common",
     ],
     deps = [
         ":bgfx-linux",
+    ],
+)
+
+cc_library(
+    name = "common-linux-headless",
+    srcs = glob(["examples/common/**/*.cpp"]),
+    hdrs = glob(["examples/common/**/*.h"]),
+    defines = [
+        "ENTRY_CONFIG_IMPLEMENT_MAIN=1",
+		"ENTRY_CONFIG_USE_NOOP",
+    ],
+    includes = [
+        "examples/common",
+    ],
+    deps = [
+        ":bgfx-linux-headless",
     ],
 )
 
@@ -176,12 +217,23 @@ examples_deps_linux = [
     ":common-linux",
 ]
 
+examples_deps_linux_headless = [
+    ":common-linux-headless",
+]
+
 examples_deps_macos = [
     ":common-macos",
     ":common-compat-macos",
 ]
 
 examples_linkopts_linux = [
+    "-lGL",
+    "-lpthread",
+    "-ldl",
+	"-lX11"
+]
+
+examples_linkopts_linux_headless = [
     "-lGL",
     "-lpthread",
     "-ldl",
@@ -198,6 +250,13 @@ cc_binary(
     srcs = ["examples/00-helloworld/helloworld.cpp"],
     linkopts = examples_linkopts_linux,
     deps = examples_deps_linux,
+)
+
+cc_binary(
+    name = "00-helloworld-linux-headless",
+    srcs = ["examples/00-helloworld/helloworld.cpp"],
+    linkopts = examples_linkopts_linux_headless,
+    deps = examples_deps_linux_headless,
 )
 
 cc_binary(
