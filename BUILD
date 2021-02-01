@@ -76,7 +76,7 @@ cc_library(
     ]),
     defines = [
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
-		"BGFX_CONFIG_RENDERER_OPENGLES=30"
+		"BGFX_CONFIG_RENDERER_OPENGLES=32",
     ],
     includes = [
         "3rdparty",
@@ -164,7 +164,7 @@ cc_library(
     hdrs = glob(["examples/common/**/*.h"]),
     defines = [
         "ENTRY_CONFIG_IMPLEMENT_MAIN=1",
-		"ENTRY_CONFIG_USE_NOOP",
+		#"ENTRY_CONFIG_USE_NOOP",
     ],
     includes = [
         "examples/common",
@@ -237,7 +237,8 @@ examples_linkopts_linux_headless = [
     "-lGL",
     "-lpthread",
     "-ldl",
-	"-lEGL"
+	"-lEGL",
+	"-lX11"
 ]
 
 examples_linkopts_macos = [
@@ -292,6 +293,20 @@ cc_binary(
     srcs = ["examples/22-windows/windows.cpp"],
     linkopts = examples_linkopts_linux,
     deps = examples_deps_linux,
+)
+
+cc_binary(
+    name = "27-terrain-linux",
+    srcs = ["examples/27-terrain/terrain.cpp"],
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
+)
+
+cc_binary(
+    name = "27-terrain-linux-headless",
+    srcs = ["examples/27-terrain/terrain.cpp"],
+    linkopts = examples_linkopts_linux_headless,
+    deps = examples_deps_linux_headless,
 )
 
 cc_binary(
