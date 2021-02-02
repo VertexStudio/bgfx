@@ -53,6 +53,9 @@ cc_library(
         "3rdparty/khronos",
         "include",
     ],
+	defines = [
+		"BGFX_CONFIG_DEBUG" #Uncomment this to debug bgfx related  problems
+	],
     copts = [
     ],
     visibility = ["//visibility:public"],
@@ -77,6 +80,7 @@ cc_library(
     defines = [
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
 		"BGFX_CONFIG_RENDERER_OPENGLES=32",
+		"BGFX_CONFIG_DEBUG" #Uncomment this to debug bgfx related  problems
     ],
     includes = [
         "3rdparty",
