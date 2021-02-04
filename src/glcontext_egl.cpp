@@ -209,8 +209,12 @@ EGL_IMPORT
 
 			EGLint attrs[] =
 			{
+#	if BGFX_CONFIG_USE_PBUFFER > 0
+				EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+				EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+#	else
 				EGL_RENDERABLE_TYPE, (gles >= 30) ? EGL_OPENGL_ES3_BIT_KHR : EGL_OPENGL_ES2_BIT,
-
+#	endif
 				EGL_BLUE_SIZE, 8,
 				EGL_GREEN_SIZE, 8,
 				EGL_RED_SIZE, 8,
@@ -272,6 +276,8 @@ EGL_IMPORT
 #	else
 			m_surface = eglCreateWindowSurface(m_display, m_config, nwh, NULL);
 #	endif
+			EGLint err = eglGetError();
+			BX_TRACE("egl create surface error: %d", err);
 			BGFX_FATAL(m_surface != EGL_NO_SURFACE, Fatal::UnableToInitialize, "Failed to create surface.");
 
 			const bool hasEglKhrCreateContext = !bx::findIdentifierMatch(extensions, "EGL_KHR_create_context").isEmpty();

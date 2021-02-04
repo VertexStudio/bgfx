@@ -286,6 +286,13 @@ cc_binary(
 )
 
 cc_binary(
+    name = "01-cubes-linux-headless",
+    srcs = ["examples/01-cubes/cubes.cpp"],
+    linkopts = examples_linkopts_linux_headless,
+    deps = examples_deps_linux_headless,
+)
+
+cc_binary(
     name = "14-shadowvolumes-linux",
     srcs = ["examples/14-shadowvolumes/shadowvolumes.cpp"],
     linkopts = examples_linkopts_linux,
