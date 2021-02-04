@@ -174,6 +174,10 @@
 #	define BGFX_CONFIG_RENDERER_USE_EXTENSIONS 1
 #endif // BGFX_CONFIG_RENDERER_USE_EXTENSIONS
 
+/// Enable pixel buffer surface in egl
+#ifndef BGFX_CONFIG_USE_PBUFFER
+#	define BGFX_CONFIG_USE_PBUFFER 1
+#endif // BGFX_CONFIG_USE_PBUFFER
 /// Enable use of tinystl.
 #ifndef BGFX_CONFIG_USE_TINYSTL
 #	define BGFX_CONFIG_USE_TINYSTL 1

@@ -267,7 +267,11 @@ EGL_IMPORT
 			vc_dispmanx_update_submit_sync(dispmanUpdate);
 #	endif // BX_PLATFORM_ANDROID
 
+#	if BGFX_CONFIG_USE_PBUFFER >= 0
 			m_surface = eglCreatePbufferSurface(m_display, m_config, NULL);
+#	else
+			m_surface = eglCreateWindowSurface(m_display, m_config, nwh, NULL);
+#	endif
 			BGFX_FATAL(m_surface != EGL_NO_SURFACE, Fatal::UnableToInitialize, "Failed to create surface.");
 
 			const bool hasEglKhrCreateContext = !bx::findIdentifierMatch(extensions, "EGL_KHR_create_context").isEmpty();

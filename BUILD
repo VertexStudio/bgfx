@@ -5,6 +5,8 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "objc_library")
 
 package(default_visibility = ["//visibility:public"])
 
+
+
 srcs = [
     "src/bgfx.cpp",
     "src/debug_renderdoc.cpp",
@@ -35,6 +37,7 @@ srcs_macos = [
     "src/renderer_mtl.mm",
 ]
 
+
 cc_library(
     name = "bgfx-linux",
     srcs = srcs + ["src/glcontext_glx.cpp"] +
@@ -54,7 +57,7 @@ cc_library(
         "include",
     ],
 	defines = [
-		"BGFX_CONFIG_DEBUG" #Uncomment this to debug bgfx related  problems
+		#"BGFX_CONFIG_DEBUG" #Uncomment this to debug bgfx related  problems
 	],
     copts = [
     ],
@@ -77,10 +80,11 @@ cc_library(
         "**/*.h",
         "**/*.inl",
     ]),
-    defines = [
+    defines =  [
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
 		"BGFX_CONFIG_RENDERER_OPENGLES=32",
-		"BGFX_CONFIG_DEBUG" #Uncomment this to debug bgfx related  problems
+		"BGFX_CONFIG_USE_PBUFFER=1",
+		#"BGFX_CONFIG_DEBUG" #Uncomment this to debug bgfx related  problems
     ],
     includes = [
         "3rdparty",
