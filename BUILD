@@ -2,6 +2,7 @@
 # Author: Alex Rozgo <alex.rozgo@gmail.com>
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "objc_library")
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -37,7 +38,16 @@ srcs_macos = [
     "src/renderer_mtl.mm",
 ]
 
+string_flag(name = "bgfx_debug", build_setting_default = "false")
+config_setting(
+    name = "use_bgfx_debug",
+    flag_values = {":bgfx_debug": "true"},
+)
 
+bgfx_debug_def = select ({
+        "use_bgfx_debug": ["BGFX_CONFIG_DEBUG"],
+        "//conditions:default": []
+    })
 cc_library(
     name = "bgfx-linux",
     srcs = srcs + ["src/glcontext_glx.cpp"] +
@@ -56,8 +66,9 @@ cc_library(
         "3rdparty/khronos",
         "include",
     ],
-	defines = [
-		#"BGFX_CONFIG_DEBUG" #Uncomment this to debug bgfx related  problems
+	defines = bgfx_debug_def +
+	[
+
 	],
     copts = [
     ],
@@ -80,11 +91,11 @@ cc_library(
         "**/*.h",
         "**/*.inl",
     ]),
-    defines =  [
+    defines = bgfx_debug_def +
+	[
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
 		"BGFX_CONFIG_RENDERER_OPENGLES=32",
 		"BGFX_CONFIG_USE_PBUFFER=1",
-		#"BGFX_CONFIG_DEBUG" #Uncomment this to debug bgfx related  problems
     ],
     includes = [
         "3rdparty",
@@ -172,7 +183,7 @@ cc_library(
     hdrs = glob(["examples/common/**/*.h"]),
     defines = [
         "ENTRY_CONFIG_IMPLEMENT_MAIN=1",
-		#"ENTRY_CONFIG_USE_NOOP",
+		"ENTRY_CONFIG_USE_NOOP",
     ],
     includes = [
         "examples/common",
@@ -246,7 +257,6 @@ examples_linkopts_linux_headless = [
     "-lpthread",
     "-ldl",
 	"-lEGL",
-	"-lX11"
 ]
 
 examples_linkopts_macos = [
