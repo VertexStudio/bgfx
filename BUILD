@@ -96,6 +96,7 @@ cc_library(
 		"BGFX_CONFIG_RENDERER_OPENGGL=0",
 		"BGFX_CONFIG_RENDERER_OPENGLES=32",
 		"BGFX_CONFIG_USE_PBUFFER=1",
+		"BGFX_GL_CONFIG_TEXTURE_READ_BACK_EMULATION=1"
     ],
     includes = [
         "3rdparty",
@@ -264,6 +265,11 @@ examples_linkopts_macos = [
     "-ldl",
 ]
 
+filegroup(
+	name = "examples-runtime",
+	srcs = glob(["examples/runtime/**/*"])
+)
+
 cc_binary(
     name = "00-helloworld-linux",
     srcs = ["examples/00-helloworld/helloworld.cpp"],
@@ -283,6 +289,9 @@ cc_binary(
     srcs = ["examples/01-cubes/cubes.cpp"],
     linkopts = examples_linkopts_linux,
     deps = examples_deps_linux,
+	data = [
+		":examples-runtime"
+	]
 )
 
 cc_binary(
@@ -311,6 +320,13 @@ cc_binary(
     srcs = ["examples/15-shadowmaps-simple/shadowmaps_simple.cpp"],
     linkopts = examples_linkopts_linux,
     deps = examples_deps_linux,
+)
+
+cc_binary(
+    name = "15-shadowmaps-simple-linux-headless",
+    srcs = ["examples/15-shadowmaps-simple/shadowmaps_simple.cpp"],
+    linkopts = examples_linkopts_linux_headless,
+    deps = examples_deps_linux_headless,
 )
 
 cc_binary(
@@ -353,4 +369,11 @@ cc_binary(
     srcs = ["examples/30-picking/picking.cpp"],
     linkopts = examples_linkopts_linux,
     deps = examples_deps_linux,
+)
+
+cc_binary(
+    name = "30-picking-linux-headless",
+    srcs = ["examples/30-picking/picking.cpp"],
+    linkopts = examples_linkopts_linux_headless,
+    deps = examples_deps_linux_headless,
 )
