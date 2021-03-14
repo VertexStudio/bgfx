@@ -3297,7 +3297,8 @@ namespace bgfx { namespace gl
 						GL_CHECK(glReadBuffer(GL_COLOR_ATTACHMENT0) );
 					}
 
-					if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER) )
+					GLenum fbComplete = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+					if (GL_FRAMEBUFFER_COMPLETE ==  fbComplete)
 					{
 						GL_CHECK(glReadPixels(
 							  0

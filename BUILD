@@ -330,6 +330,20 @@ cc_binary(
 )
 
 cc_binary(
+    name = "21-deferred-linux",
+    srcs = ["examples/21-deferred/deferred.cpp"],
+    linkopts = examples_linkopts_linux,
+    deps = examples_deps_linux,
+)
+
+cc_binary(
+    name = "21-deferred-linux-headless",
+    srcs = ["examples/21-deferred/deferred.cpp"],
+    linkopts = examples_linkopts_linux_headless,
+    deps = examples_deps_linux_headless,
+)
+
+cc_binary(
     name = "22-windows-linux",
     srcs = ["examples/22-windows/windows.cpp"],
     linkopts = examples_linkopts_linux,

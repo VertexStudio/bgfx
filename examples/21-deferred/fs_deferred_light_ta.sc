@@ -7,7 +7,7 @@ $input v_texcoord0
 
 #include "common.sh"
 
-SAMPLER2DARRAY(s_normal, 0);
+//SAMPLER2DARRAY(s_normal, 0);
 SAMPLER2D(s_depth,  1);
 
 uniform vec4 u_lightPosRadius[1];
@@ -16,7 +16,7 @@ uniform mat4 u_mtx;
 
 void main()
 {
-	vec3  normal      = decodeNormalUint(texture2DArray(s_normal, vec3(v_texcoord0, 1.0) ).xyz);
+	vec3  normal      = vec3(1,1,1);//decodeNormalUint(texture2DArray(s_normal, vec3(v_texcoord0, 1.0) ).xyz);
 	float deviceDepth = texture2D(s_depth, v_texcoord0).x;
 	float depth       = toClipSpaceDepth(deviceDepth);
 

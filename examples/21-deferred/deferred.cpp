@@ -2,12 +2,32 @@
  * Copyright 2011-2021 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <chrono>
+#include <thread>
+
 
 #include "common.h"
 #include "bgfx_utils.h"
 #include "imgui/imgui.h"
 #include "camera.h"
 #include "bounds.h"
+
+#define BLIT_ID 1
+#if BLIT_ID == 0
+static const uint16_t BPC = 4;
+static const uint16_t BlitGBufferIdx = 0;
+static const bgfx::TextureFormat::Enum BlitTextureFormat = bgfx::TextureFormat::BGRA8;
+typedef  uint8_t BlitComponent;
+#else
+static const uint16_t BPC = 1;
+static const uint16_t BlitGBufferIdx = 2;
+static const bgfx::TextureFormat::Enum BlitTextureFormat = bgfx::TextureFormat::D32F;
+typedef  float BlitComponent;
+#endif
+
 
 namespace
 {
@@ -20,6 +40,8 @@ constexpr bgfx::ViewId kRenderPassDebugLights  = 4;
 constexpr bgfx::ViewId kRenderPassDebugGBuffer = 5;
 
 static float s_texelHalf = 0.0f;
+
+
 
 struct PosNormalTangentTexcoordVertex
 {
@@ -281,6 +303,7 @@ public:
 		m_lightProgram   = loadProgram("vs_deferred_light",      "fs_deferred_light");
 		m_combineProgram = loadProgram("vs_deferred_combine",    "fs_deferred_combine");
 		m_debugProgram   = loadProgram("vs_deferred_debug",      "fs_deferred_debug");
+		m_extractDepth   = loadProgram("vs_deferred_light",      "fs_deferred_extract_depth");
 		m_lineProgram    = loadProgram("vs_deferred_debug_line", "fs_deferred_debug_line");
 
 		m_useTArray = false;
@@ -321,6 +344,12 @@ public:
 		m_gbufferTex[2].idx = bgfx::kInvalidHandle;
 		m_gbuffer.idx       = bgfx::kInvalidHandle;
 		m_lightBuffer.idx   = bgfx::kInvalidHandle;
+
+		m_readFrameNum = 0;
+		uint64_t tsFlags = 0 | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT |
+          BGFX_SAMPLER_MIP_POINT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP ;
+		m_blitTexture = bgfx::createTexture2D(uint16_t(m_width), uint16_t(m_height), false, 1, BlitTextureFormat, BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK );
+		m_blitData.resize(m_width * m_height *  sizeof(BlitComponent) * BPC);
 
 		// Imgui.
 		imguiCreate();
@@ -856,7 +885,29 @@ public:
 
 			// Advance to next frame. Rendering thread will be kicked to
 			// process submitted rendering primitives.
-			bgfx::frame();
+			uint64_t frame = bgfx::frame();
+
+			if(m_readFrameNum < frame)
+			{
+				bgfx::blit(5, m_blitTexture, 0, 0, m_gbufferTex[BlitGBufferIdx]);
+				m_readFrameNum = bgfx::readTexture(m_blitTexture, m_blitData.data());
+			}
+			else if(m_readFrameNum == frame)
+			{
+				int i = 0;
+				//printf("Frame: %d ==================\n", frame);
+				// for(auto v : m_blitData)
+				// {
+				// 	printf("%f, ", v);
+				// 	i++;
+				// 	if(i % m_width == 0) printf("\n");
+				// }
+				// printf("\n\n");
+				// bx::WriterI writer;
+				// bx::Error err;
+				// bx::open(bx::open(&writer, "frame.png", false, &err);
+				// bimg::imageWritePng(&writer, m_width, m_height, m_width * 4, )
+			}
 
 			return true;
 		}
@@ -885,12 +936,19 @@ public:
 	bgfx::ProgramHandle m_clearUavProgram;
 	bgfx::ProgramHandle m_combineProgram;
 	bgfx::ProgramHandle m_debugProgram;
+	bgfx::ProgramHandle m_extractDepth;
 	bgfx::ProgramHandle m_lineProgram;
 	bgfx::TextureHandle m_textureColor;
 	bgfx::TextureHandle m_textureNormal;
 
 	bgfx::TextureHandle m_gbufferTex[3];
 	bgfx::TextureHandle m_lightBufferTex;
+
+	bgfx::TextureHandle m_blitTexture;
+	std::vector<BlitComponent> m_blitData;
+	uint64_t m_readFrameNum;
+	uint64_t m_frameNum;
+
 	bgfx::FrameBufferHandle m_gbuffer;
 	bgfx::FrameBufferHandle m_lightBuffer;
 

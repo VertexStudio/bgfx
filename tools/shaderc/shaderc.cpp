@@ -2291,7 +2291,7 @@ namespace bgfx
 											, "#define bgfxShadow2D     shadow2D\n"
 											  "#define bgfxShadow2DProj shader2DProj\n"
 											);
-									}
+									}usesTextureArray
 								}
 								else
 								{
