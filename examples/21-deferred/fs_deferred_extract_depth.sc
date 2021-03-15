@@ -15,7 +15,7 @@ void main()
 	float deviceDepth = texture2D(s_depth, v_texcoord0).x;
 	float depth       = toClipSpaceDepth(deviceDepth);
 
-	gl_FragColor.xyz = vec3(depth, 0, 0);
+	gl_FragColor.xyz = vec3(deviceDepth, 1.0, 1.0);
 
 	gl_FragColor.w = 1.0;
 }
