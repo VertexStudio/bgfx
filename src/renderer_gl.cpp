@@ -3306,7 +3306,7 @@ namespace bgfx { namespace gl
 							, texture.m_width
 							, texture.m_height
 							, m_readPixelsFmt
-							, GL_UNSIGNED_BYTE
+							, GL_FLOAT
 							, _data
 							) );
 					}
