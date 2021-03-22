@@ -16,16 +16,14 @@
 #include "bounds.h"
 
 
-#define BLIT_ID 1
+#define BLIT_ID 0
 #if BLIT_ID == 0
 static const uint16_t BPC = 4;
-static const uint16_t BlitGBufferIdx = 0;
 static const bgfx::TextureFormat::Enum BlitTextureFormat = bgfx::TextureFormat::BGRA8;
 typedef  uint8_t BlitComponent;
 #else
-static const uint16_t BPC = 1;
-static const uint16_t BlitGBufferIdx = 2;
-static const bgfx::TextureFormat::Enum BlitTextureFormat = bgfx::TextureFormat::D32F;
+static const uint16_t BPC = 4;
+static const bgfx::TextureFormat::Enum BlitTextureFormat = bgfx::TextureFormat::RGBA32F;
 typedef  float BlitComponent;
 #endif
 
@@ -36,10 +34,10 @@ namespace
 constexpr bgfx::ViewId kRenderPassGeometry     = 0;
 constexpr bgfx::ViewId kRenderPassClearUav     = 1;
 constexpr bgfx::ViewId kRenderPassLight        = 2;
-constexpr bgfx::ViewId kRenderPassCombine      = 3;
-constexpr bgfx::ViewId kRenderPassDebugLights  = 4;
-constexpr bgfx::ViewId kRenderPassDebugGBuffer = 5;
-constexpr bgfx::ViewId kRenderPassExtractDepth = 6;
+constexpr bgfx::ViewId kRenderPassExtractDepth = 3;
+constexpr bgfx::ViewId kRenderPassCombine      = 4;
+constexpr bgfx::ViewId kRenderPassDebugLights  = 5;
+constexpr bgfx::ViewId kRenderPassDebugGBuffer = 6;
 constexpr bgfx::ViewId kRenderPassExtractDepthBlit = 7;
 
 static float s_texelHalf = 0.0f;
@@ -306,7 +304,7 @@ public:
 		m_lightProgram   = loadProgram("vs_deferred_light",      "fs_deferred_light");
 		m_combineProgram = loadProgram("vs_deferred_combine",    "fs_deferred_combine");
 		m_debugProgram   = loadProgram("vs_deferred_debug",      "fs_deferred_debug");
-		m_extractDepth   = loadProgram("vs_deferred_light",      "fs_deferred_extract_depth");
+		m_extractDepthProgram   = loadProgram("vs_deferred_light",      "fs_deferred_extract_depth");
 		m_lineProgram    = loadProgram("vs_deferred_debug_line", "fs_deferred_debug_line");
 
 		m_useTArray = false;
@@ -578,7 +576,7 @@ public:
 
 					m_gbuffer = bgfx::createFrameBuffer(BX_COUNTOF(gbufferAt), gbufferAt, true);
 
-					m_extractDepthTexture = bgfx::createTexture2D(uint16_t(m_width), uint16_t(m_height), false, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_RT);
+					m_extractDepthTexture = bgfx::createTexture2D(uint16_t(m_width), uint16_t(m_height), false, 1, bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_RT);
 					bgfx::TextureHandle extractfb[] = { m_extractDepthTexture };
 					m_extractDepthBuffer = bgfx::createFrameBuffer(1, extractfb, true);
 
@@ -648,6 +646,7 @@ public:
 					bgfx::setViewTransform(kRenderPassClearUav, NULL, proj);
 					bgfx::setViewTransform(kRenderPassLight,    NULL, proj);
 					bgfx::setViewTransform(kRenderPassCombine,  NULL, proj);
+					bgfx::setViewTransform(kRenderPassExtractDepth, NULL, proj);
 
 					const float aspectRatio = float(m_height)/float(m_width);
 					const float size = 10.0f;
@@ -657,7 +656,6 @@ public:
 					bx::mtxOrtho(proj, 0.0f, (float)m_width, 0.0f, (float)m_height, 0.0f, 1000.0f, 0.0f, caps->homogeneousDepth);
 					bgfx::setViewTransform(kRenderPassDebugLights, NULL, proj);
 
-					bgfx::setViewTransform(kRenderPassExtractDepth, NULL, proj);
 				}
 
 				const uint32_t dim = 11;
@@ -704,16 +702,6 @@ public:
 						// Submit primitive for rendering to view 0.
 						bgfx::submit(kRenderPassGeometry, m_geomProgram);
 					}
-				}
-
-				// Clear UAV texture
-				if (m_useUav)
-				{
-					screenSpaceQuad( (float)m_width, (float)m_height, s_texelHalf, m_caps->originBottomLeft);
-					bgfx::setViewFrameBuffer(kRenderPassClearUav, BGFX_INVALID_HANDLE);
-					bgfx::setState(0);
-					bgfx::setImage(2, m_lightBufferTex, 0, bgfx::Access::ReadWrite, bgfx::TextureFormat::RGBA8);
-					bgfx::submit(kRenderPassClearUav, m_clearUavProgram);
 				}
 
 				// Draw lights into light buffer.
@@ -859,47 +847,28 @@ public:
 					}
 				}
 
-				// Combine color and light buffers.
-			// 	bgfx::setTexture(0, s_albedo, m_gbufferTex[0]);
-			// 	bgfx::setTexture(1, s_light,  m_lightBufferTex);
-			// 	bgfx::setState(0
-			// 		| BGFX_STATE_WRITE_RGB
-			// 		| BGFX_STATE_WRITE_A
-			// 		);
+				bgfx::setViewFrameBuffer(kRenderPassExtractDepth, m_extractDepthBuffer);
+				bgfx::setTexture(0, s_depth, bgfx::getTexture(m_gbuffer, 2));
+				bgfx::setState(0 | BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+				screenSpaceQuad( (float)m_width, (float)m_height, s_texelHalf, m_caps->originBottomLeft);
+				bgfx::submit(kRenderPassExtractDepth, m_extractDepthProgram);
 
-			// 	screenSpaceQuad( (float)m_width, (float)m_height, s_texelHalf, m_caps->originBottomLeft);
-			// 	bgfx::submit(kRenderPassCombine, m_combineProgram);
+				//Combine color and light buffers.
+				bgfx::setTexture(0, s_albedo, m_gbufferTex[0]);
+				bgfx::setTexture(1, s_light,  m_lightBufferTex);
+				bgfx::setState(0
+					| BGFX_STATE_WRITE_RGB
+					| BGFX_STATE_WRITE_A
+					);
 
-			// 	if (m_showGBuffer)
-			// 	{
-			// 		const float aspectRatio = float(m_width)/float(m_height);
+				screenSpaceQuad( (float)m_width, (float)m_height, s_texelHalf, m_caps->originBottomLeft);
+				bgfx::submit(kRenderPassCombine, m_combineProgram);
 
-			// 		// Draw m_debug m_gbuffer.
-			// 		for (uint32_t ii = 0; ii < BX_COUNTOF(m_gbufferTex); ++ii)
-			// 		{
-			// 			float mtx[16];
-			// 			bx::mtxSRT(mtx
-			// 				, aspectRatio, 1.0f, 1.0f
-			// 				, 0.0f, 0.0f, 0.0f
-			// 				, -7.9f - BX_COUNTOF(m_gbufferTex)*0.1f*0.5f + ii*2.1f*aspectRatio, 4.0f, 0.0f
-			// 				);
 
-			// 			bgfx::setTransform(mtx);
-			// 			bgfx::setVertexBuffer(0, m_vbh);
-			// 			bgfx::setIndexBuffer(m_ibh, 0, 6);
-			// 			bgfx::setTexture(0, s_texColor, m_gbufferTex[ii]);
-			// 			bgfx::setState(BGFX_STATE_WRITE_RGB);
-			// 			bgfx::submit(kRenderPassDebugGBuffer, m_debugProgram);
-			// 		}
-			// 	}
-			// }
+
+			}
 
 					//
-			bgfx::setViewFrameBuffer(kRenderPassExtractDepth, m_extractDepthBuffer);
-			bgfx::setTexture(0, s_depth, bgfx::getTexture(m_gbuffer, 2));
-			bgfx::setState(0 | BGFX_STATE_WRITE_RGB);
-			screenSpaceQuad( (float)m_width, (float)m_height, s_texelHalf, m_caps->originBottomLeft);
-			bgfx::submit(kRenderPassExtractDepth, m_extractDepth);
 
 			imguiEndFrame();
 
@@ -909,8 +878,8 @@ public:
 
 			if(m_readFrameNum < frame)
 			{
-				// bgfx::blit(kRenderPassExtractDepthBlit, m_blitTexture, 0, 0, m_gbufferTex[BlitGBufferIdx]);
-				// m_readFrameNum = bgfx::readTexture(m_blitTexture, m_blitData.data());
+				bgfx::blit(kRenderPassExtractDepthBlit, m_blitTexture, 0, 0, m_extractDepthTexture);
+				m_readFrameNum = bgfx::readTexture(m_blitTexture, m_blitData.data());
 			}
 			else if(m_readFrameNum == frame)
 			{
@@ -956,7 +925,7 @@ public:
 	bgfx::ProgramHandle m_clearUavProgram;
 	bgfx::ProgramHandle m_combineProgram;
 	bgfx::ProgramHandle m_debugProgram;
-	bgfx::ProgramHandle m_extractDepth;
+	bgfx::ProgramHandle m_extractDepthProgram;
 	bgfx::ProgramHandle m_lineProgram;
 	bgfx::TextureHandle m_textureColor;
 	bgfx::TextureHandle m_textureNormal;
